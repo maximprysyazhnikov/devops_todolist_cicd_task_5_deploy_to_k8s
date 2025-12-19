@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - develop
-  pull_request:
 
 env:
   DockerImageName: maxisky2595/devops-todolist-cicd-task-5
