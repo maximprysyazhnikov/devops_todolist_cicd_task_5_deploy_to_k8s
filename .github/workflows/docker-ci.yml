@@ -1,4 +1,4 @@
-name: Docker CI
+name: CI/CD Pipeline
 
 on:
   push:
@@ -10,8 +10,13 @@ env:
   DockerImageName: maxisky2595/devops-todolist-cicd-task-5
 
 jobs:
+
   docker-ci:
     runs-on: ubuntu-latest
+
+    outputs:
+      image_repository: ${{ env.DockerImageName }}
+      image_tag: latest
 
     steps:
       - name: Checkout code
@@ -32,3 +37,19 @@ jobs:
           context: .
           push: true
           tags: ${{ env.DockerImageName }}:latest
+
+  deploy-development:
+    needs: docker-ci
+    uses: ./.github/workflows/deploy-to-kind.yml
+    with:
+      environment: development
+      image_repository: ${{ needs.docker-ci.outputs.image_repository }}
+      image_tag: ${{ needs.docker-ci.outputs.image_tag }}
+
+  deploy-staging:
+    needs: docker-ci
+    uses: ./.github/workflows/deploy-to-kind.yml
+    with:
+      environment: staging
+      image_repository: ${{ needs.docker-ci.outputs.image_repository }}
+      image_tag: ${{ needs.docker-ci.outputs.image_tag }}

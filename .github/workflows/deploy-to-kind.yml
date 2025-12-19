@@ -7,6 +7,14 @@ on:
         description: "Target environment (development, staging)"
         required: true
         type: string
+      image_repository:
+        description: "Docker image repository"
+        required: true
+        type: string
+      image_tag:
+        description: "Docker image tag"
+        required: true
+        type: string
 
 jobs:
   deploy:
@@ -37,11 +45,13 @@ jobs:
           cluster_name: todoapp-${{ inputs.environment }}
           config: ./cluster.yml
 
-      - name: Helm template (dry-run install)
+      - name: Helm template (dry run)
         run: |
           helm install todoapp ./helm-charts/todoapp \
             --namespace todoapp \
             --create-namespace \
+            --set image.repository=${{ inputs.image_repository }} \
+            --set image.tag=${{ inputs.image_tag }} \
             --dry-run
 
       - name: Helm upgrade --install (atomic)
@@ -49,4 +59,6 @@ jobs:
           helm upgrade --install todoapp ./helm-charts/todoapp \
             --namespace todoapp \
             --create-namespace \
-            --atomic
+            --atomic \
+            --set image.repository=${{ inputs.image_repository }} \
+            --set image.tag=${{ inputs.image_tag }}
