@@ -1,0 +1,52 @@
+name: Deploy to kind cluster
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Target environment (development, staging)"
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    name: Deploy to kind (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: latest
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: latest
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.7.0
+        with:
+          cluster_name: todoapp-${{ inputs.environment }}
+          config: ./cluster.yml
+
+      - name: Helm template (dry-run install)
+        run: |
+          helm install todoapp ./helm-charts/todoapp \
+            --namespace todoapp \
+            --create-namespace \
+            --dry-run
+
+      - name: Helm upgrade --install (atomic)
+        run: |
+          helm upgrade --install todoapp ./helm-charts/todoapp \
+            --namespace todoapp \
+            --create-namespace \
+            --atomic
