@@ -8,13 +8,11 @@ on:
 
 jobs:
   deploy-development:
-    needs: docker-ci
     uses: ./.github/workflows/deploy-to-kind.yml
     with:
       environment: development
 
   deploy-staging:
-    needs: docker-ci
     uses: ./.github/workflows/deploy-to-kind.yml
     with:
       environment: staging
